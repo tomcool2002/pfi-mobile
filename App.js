@@ -10,6 +10,8 @@ export default function App() {
   );
 }
 
+// yo
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
