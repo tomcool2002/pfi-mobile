@@ -24,7 +24,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.tomcool2002.pfimobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"
