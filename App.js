@@ -5,6 +5,7 @@ import {Database} from "./database";
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { TextInput,Button,Alert } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -114,7 +115,7 @@ const PageMagasin = ({navigation, route}) => {
   const [isPressed, setIsPressed] = useState(false);
 
   const [Produits, setProduits] = useState();
-  db.execute("drop table if exists Produits ;");
+  //db.execute("drop table if exists Produits ;");
   db.execute("CREATE TABLE IF NOT EXISTS Produits (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT);");
   db.execute(`insert into Produits (nom, prix, image) values('produit1', 10.10, 'image1.png'),
   ('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
@@ -240,11 +241,34 @@ const PageAdmin = ({navigation, route}) => {
 const PageAjouterItem = ({navigation, route}) => {
   const {id, username, admin} = route.params
 
+  const itemInitial = {
+    nom: "",
+    prix: 0,
+    image:"",
+  };
+
+  const AjoutItem = () =>{
+    Alert.alert('Item ajouter', item.nom + " a bien ete ajoute",[
+      {
+        text:'ferme',
+      }
+    ]);
+    db.execute("insert into Produits (nom, prix, image) values('"+item.nom+"', '"+item.prix+"', '"+item.image+".png');");
+  }
+  const [item,setItem] = useState(itemInitial);
+
   return (
     <View style={styles.container}>
       <Text>
         Bonjour {username}
       </Text>
+      <TextInput value={item.nom} onChangeText={(nom) => setItem({...item,nom})} placeholder="nom de l'objet"/>
+      <TextInput value={item.prix} onChangeText={(prix) => setItem({...item,prix})} placeholder="prix de l'objet" keyboardType='numeric' maxLength={10}/>
+      <TextInput value={item.image} onChangeText={(image) => setItem({...item,image})} placeholder="nom de l'image"/>
+      <Button
+        onPress={AjoutItem}
+        title="soumettre l'objet"
+      />
     </View>
   );
 }
