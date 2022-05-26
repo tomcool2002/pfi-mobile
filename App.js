@@ -56,11 +56,11 @@ const Produit = ({id, nom, prix, image, navigation}) => {
     }
   }
   >
-      <Text>
+      <Text style={styles.centeredText}>
         {nom}
       </Text>
-      <Text>
-        {prix}
+      <Text style={styles.centeredText}>
+        {prix} $
       </Text>
   </Pressable>
 };
@@ -68,8 +68,6 @@ const Produit = ({id, nom, prix, image, navigation}) => {
 const db = new Database("DB_Mobile");
 
 const HomeScreen = ({navigation}) => {
-
-  
   const [Connexions, setConnexions] = useState();
   const [currentConnexion, setCurrentConnexion] = useState(0);
   const vide="Aucun Usager n'existe!";
@@ -79,12 +77,11 @@ const HomeScreen = ({navigation}) => {
   db.execute(`insert into Connexions (username, admin) values('user1', 0),('user2', 0),('admin1', 1);`);
   db.execute(`Select id, username, admin from Connexions`).then(sel => setConnexions(sel.rows));
 
-
-
   return (
     <View style={styles.container}>
       {Connexions ? Connexions.map((c) =>
         <Connexion
+        key={c.id}
         id={c.id}
         username={c.username}
         admin={c.admin}
@@ -115,9 +112,11 @@ const PageMagasin = ({navigation, route}) => {
   const [isPressed, setIsPressed] = useState(false);
 
   const [Produits, setProduits] = useState();
-  //db.execute("drop table if exists Produits ;");
+  db.execute("drop table if exists Produits ;");
   db.execute("CREATE TABLE IF NOT EXISTS Produits (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT);");
   db.execute(`insert into Produits (nom, prix, image) values('produit1', 10.10, 'image1.png'),
+  ('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
+  ('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
   ('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
   ('produit4', 40.40, 'image4.png');`);
   db.execute(`Select id, nom, prix, image from Produits`).then(sel => setProduits(sel.rows));
@@ -129,10 +128,10 @@ const PageMagasin = ({navigation, route}) => {
         Bonjour : {username}
       </Text>
 
-      <View style={styles.container}>
-        <ScrollView stlye={styles.scrollDownList}>
+        <ScrollView style={styles.scrollDownList}>
           {Produits ? Produits.map((p) =>
             <Produit
+            key={p.id}
             id={p.id}
             nom={p.nom}
             prix={p.prix}
@@ -141,11 +140,11 @@ const PageMagasin = ({navigation, route}) => {
             />   
           ) : <Text>Aucun item ne figure dans la bd</Text>}
         </ScrollView>
-        <StatusBar style="auto" />
-        <Text style={styles.footer}>
-          Fait Par Anthony Lamothe et Thomas Lavoie
-        </Text>
-      </View>
+
+      <StatusBar style="auto" />
+      <Text style={styles.footer}>
+        Fait Par Anthony Lamothe et Thomas Lavoie
+      </Text>
     
     {/* Affiche le bouton panier */}
       <Pressable
@@ -173,6 +172,7 @@ const PageDétails  = ({navigation, route}) => {
       <Text>
         This works, {id} : {prix} : {image}
       </Text>
+      <></>
     </View>
   );
 }
@@ -204,7 +204,7 @@ const PageAdmin = ({navigation, route}) => {
         style={isPressed?[styles.pressable, styles.pressed]:styles.pressable}
         key={id}
         onPressIn={ () => setIsPressed(true) }     
-        onPressOut={ () => {
+        onPress={ () => {
             setIsPressed(false); 
             navigation.navigate("PageAjouterItem", {id:id, username:username, admin:admin});
           }
@@ -309,14 +309,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 15,
   },
-  scrollDownList:{
-    paddingHorizontal: 20,
+  scrollDownList :{
+    paddingHorizontal: 50,
   },
   produit: {
     paddingVertical: 30,
     paddingHorizontal: 75,
   },
+  centeredText: {
+    textAlign: "center",
+    color: "white",
+  },
   footer: {
+    backgroundColor: "white",
     textAlign: "center",
     width: "100%",
     borderTopColor: "black",
