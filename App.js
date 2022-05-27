@@ -5,8 +5,10 @@ import {Database} from "./database";
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { TextInput,Button,Alert } from 'react-native';
+import { TextInput,Button,Alert,useWindowDimensions } from 'react-native';
 import NumericInput from 'react-native-numeric-input';
+import MapView,{Marker,Callout,PROVIDER_GOOGLE} from 'react-native-maps';
+import entrepots from "./entrepot.json"
 
 const Stack = createNativeStackNavigator();
 
@@ -23,11 +25,45 @@ export default function App() {
         <Stack.Screen name="PageAdmin" component={PageAdmin}/>
         <Stack.Screen name="PageAjouterItem" component={PageAjouterItem}/>
         <Stack.Screen name="PageRetirerItem" component={PageRetirerItem}/>
+        <Stack.Screen name="PageMap" component={PageMap}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
+const PageMap = ({navigation, route}) =>{
+  const [isPressed, setIsPressed] = useState(false);
+  const {id, username, admin} = route.params
+
+  const initialRegion = {
+    latitude : 45.4735448,
+    longitude: - 73.5639533,
+    latitudeDelta: 1,
+    longitudeDelta: 1
+  }
+  const [region,setRegion] = useState(initialRegion)
+  const {height,width} = useWindowDimensions()
+  return (
+    <View style={styles.container}>
+      <MapView style={{width:width,height:height}} 
+      provider={PROVIDER_GOOGLE}
+      region = {region}>
+        {entrepots.map(b => <Marker key={b.id}
+             coordinate={b.coord} 
+             >
+               <Callout>
+                 <Text>{b.nom}</Text>
+                 <Text>{b.text}</Text>
+               </Callout>
+             </Marker>)}
+      </MapView>
+      <Text style={styles.footer}>
+        Fait Par Anthony Lamothe et Thomas Lavoie
+      </Text>
+    </View>
+  )
+
+}
 const Connexion=({id, username, admin, navigation}) => {
   const [isPressed, setIsPressed] = useState(false);
   return <Pressable
@@ -223,7 +259,7 @@ const PageDétails  = ({navigation, route}) => {
   );
 }
 
-const Panier = ({id, nom, prix,username, image, navigation}) => {
+const Panier = ({id, nom, prix,username, image,qte, navigation}) => {
   const [isPressed, setIsPressed] = useState(false);
 
   return <Pressable
@@ -260,25 +296,53 @@ const Panier = ({id, nom, prix,username, image, navigation}) => {
 // Possibilité de retirer un item en appuyant dessus (Affiche un pop-up lorsqu'on clique dessus)
 // Retire tous les items du panier lorsqu'on achète le panier.
 
-// À COMPLÉTER
 const PagePanier = ({navigation, route}) => {
   const [isPressed, setIsPressed] = useState(false);
 
   const [Paniers, setPaniers] = useState();
 
-  db.execute("drop table if exists Panier ;");
-  db.execute("CREATE TABLE IF NOT EXISTS Panier (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT, username TEXT);");
-  db.execute("insert into Panier (nom, prix, image, username) values('produit1', 10.10, 'image1.png','user1')")
-  db.execute("Select id,nom,prix,username,image from Panier").then(res => setPaniers(res.rows))
+  db.execute("CREATE TABLE IF NOT EXISTS Panier (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT, username TEXT,qte REAL);");
+  db.execute("Select id,nom,prix,username,image,qte from Panier").then(res => setPaniers(res.rows))
 
   const {id, username, admin} = route.params;
   return (
     <View style={styles.container}>
+      <ScrollView style={styles.scrollDownList}>
+          {Paniers ? Paniers.map((p) =>
+            <Panier
+            key={p.id}
+            id={p.id}
+            nom={p.nom}
+            prix={p.prix}
+            username={p.username}
+            image={p.image}
+            qte={p.qte}
+            navigation={navigation}
+            />   
+          ) : <Text>Aucun item ne figure dans la bd</Text>}
+        </ScrollView>
+        <Pressable
+        style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable, styles.btnBasDroite]}
+        key={id}
+        onPressIn={ () => setIsPressed(true) }
+        onPressOut={ () => {
+            setIsPressed(false);
+            navigation.navigate("PageMap", {id:id, username:username, admin:admin});
+          }
+        }>
+          <Text style={styles.btnText}>
+            Acheter
+          </Text>
+      </Pressable>
       <Text>
         Bonjour : {username}
       </Text>
+      <Text style={styles.footer}>
+        Fait Par Anthony Lamothe et Thomas Lavoie
+      </Text>
     </View>
   )
+
 
 }
 
@@ -326,7 +390,6 @@ const PageAdmin = ({navigation, route}) => {
   );
 }
 
-// À COMPLÉTER
 const PageAjouterItem = ({navigation, route}) => {
   const {id, username, admin} = route.params
 
