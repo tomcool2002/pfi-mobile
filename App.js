@@ -145,7 +145,6 @@ const PageMagasin = ({navigation, route}) => {
       <Text style={styles.footer}>
         Fait Par Anthony Lamothe et Thomas Lavoie
       </Text>
-    
     {/* Affiche le bouton panier */}
       <Pressable
         style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable, styles.btnBasDroite]}
@@ -177,15 +176,69 @@ const PageDétails  = ({navigation, route}) => {
   );
 }
 
+const Panier = ({id, nom, prix,username, image, navigation}) => {
+  const [isPressed, setIsPressed] = useState(false);
+
+  return <Pressable 
+  style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable, styles.produit]}
+  key={id}
+  onPressIn={ () => setIsPressed(true) }     
+  onPressOut={ () => {
+      setIsPressed(false); 
+      Alert.alert(
+        "Enlevez " + {nom} + " ?",
+        "Confimez",
+        [
+          {
+            text:"Annuler"
+          },
+          {
+            Text:"Enlevez",
+            onPress:() => {db.execute("Delete from Panier where id = " + id);}
+          }
+        ]
+      );
+    }
+  }
+  >
+      <Text style={styles.centeredText}>
+        {nom}
+      </Text>
+      <Text style={styles.centeredText}>
+        {prix} $
+      </Text>
+  </Pressable>
+};
 // Affiche la page de Panier. Affiche les items se trouvant dans le panier de l'utilisateur
 // Possibilité de retirer un item en appuyant dessus (Affiche un pop-up lorsqu'on clique dessus)
 // Retire tous les items du panier lorsqu'on achète le panier.
 const PagePanier = ({navigation, route}) => {
   const [isPressed, setIsPressed] = useState(false);
+
+  const [Paniers, setPaniers] = useState();
+
+  db.execute("drop table if exists Panier ;");
+  db.execute("CREATE TABLE IF NOT EXISTS Panier (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT, username TEXT);");
+  db.execute("insert into Panier (nom, prix, image, username) values('produit1', 10.10, 'image1.png','user1')")
+  db.execute("Select id,nom,prix,username,image from Panier").then(res => setPaniers(res.rows))
+
   const {id, username, admin} = route.params;
   return (
     <View style={styles.container}>
-      <Text style={btnBasDroite}>
+      <ScrollView style={styles.scrollDownList}>
+          {Paniers ? Paniers.map((p) =>
+            <Panier
+            key={p.id}
+            id={p.id}
+            nom={p.nom}
+            prix={p.prix}
+            username={p.username}
+            image={p.image}
+            navigation={navigation}
+            />   
+          ) : <Text>Aucun item ne figure dans la bd</Text>}
+        </ScrollView>
+      <Text>
         Bonjour : {username}
       </Text>
     </View>
