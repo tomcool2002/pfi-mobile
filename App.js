@@ -440,13 +440,70 @@ const PageAjouterItem = ({navigation, route}) => {
 
 // Suggestion : Faire un copié collé de page de détails, sauf que quand on
 // appuie sur un item, on a un message de confirmation pour le supprimer
+
+const Produit2 = ({id, nom, prix, image, username, navigation}) => {
+  const [isPressed, setIsPressed] = useState(false);
+
+  return <Pressable
+  style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable, styles.produit]}
+  key={id}
+  onPressIn={ () => setIsPressed(true) }
+  onPressOut={ () => {
+      setIsPressed(false);
+      Alert.alert(
+        "Enlevez " + {nom} + " ?",
+        "Confimez",
+        [
+          {
+            text:"Annuler"
+          },
+          {
+            Text:"Enlevez",
+            onPress:() => {db.execute("Delete from Produits where id = " + id);}
+          }
+        ]
+      );
+    
+    }
+  }
+  >
+      <Text style={styles.centeredText}>
+        {nom}
+      </Text>
+      <Text style={styles.centeredText}>
+        {prix} $
+      </Text>
+  </Pressable>
+};
 const PageRetirerItem = ({navigation, route}) => {
   const {id, username, admin} = route.params
+
+  const [Produits, setProduits] = useState();
+  db.execute(`Select id, nom, prix, image from Produits`).then(sel => setProduits(sel.rows));
+
 
   return (
     <View style={styles.container}>
       <Text>
         Bonjour {username}
+      </Text>
+      <ScrollView style={styles.scrollDownList}>
+          {Produits ? Produits.map((p) =>
+            <Produit2
+            key={p.id}
+            id={p.id}
+            nom={p.nom}
+            prix={p.prix}
+            image={p.image}
+            username={username}
+            navigation={navigation}
+            />
+          ) : <Text>Aucun item ne figure dans la bd</Text>}
+        </ScrollView>
+
+      <StatusBar style="auto" />
+      <Text style={styles.footer}>
+        Fait Par Anthony Lamothe et Thomas Lavoie
       </Text>
     </View>
   );
