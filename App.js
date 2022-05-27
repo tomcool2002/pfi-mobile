@@ -30,10 +30,10 @@ export default function App() {
 
 const Connexion=({id, username, admin, navigation}) => {
   const [isPressed, setIsPressed] = useState(false);
-  return <Pressable 
+  return <Pressable
     style={isPressed?[styles.pressable, styles.pressed]:styles.pressable}
     key={id}
-    onPressIn={ () => setIsPressed(true) }     
+    onPressIn={ () => setIsPressed(true) }
     onPressOut={ () => {
         setIsPressed(false);
         admin == 0 ? navigation.navigate("Magasin", {id:id, username:username, admin:admin}) : navigation.navigate("PageAdmin", {id:id, username:username, admin:admin});
@@ -47,12 +47,12 @@ const Connexion=({id, username, admin, navigation}) => {
 const Produit = ({id, nom, prix, image, username, navigation}) => {
   const [isPressed, setIsPressed] = useState(false);
 
-  return <Pressable 
+  return <Pressable
   style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable, styles.produit]}
   key={id}
-  onPressIn={ () => setIsPressed(true) }     
+  onPressIn={ () => setIsPressed(true) }
   onPressOut={ () => {
-      setIsPressed(false); 
+      setIsPressed(false);
       navigation.navigate("PageDétails", {id:id, nom:nom, prix:prix, image:image, username:username});
     }
   }
@@ -91,7 +91,7 @@ const HomeScreen = ({navigation}) => {
         username={c.username}
         admin={c.admin}
         navigation={navigation}
-        />   
+        />
       ) : <Text>{vide}</Text>}
       <StatusBar style="auto" />
       <Text style={styles.footer}>
@@ -112,7 +112,7 @@ const PageConnexion = ({navigation, route}) => {
   );
 }
 
-// Affiche une liste des items 
+// Affiche une liste des items
 const PageMagasin = ({navigation, route}) => {
   const [isPressed, setIsPressed] = useState(false);
 
@@ -143,7 +143,7 @@ const PageMagasin = ({navigation, route}) => {
             image={p.image}
             username={username}
             navigation={navigation}
-            />   
+            />
           ) : <Text>Aucun item ne figure dans la bd</Text>}
         </ScrollView>
 
@@ -151,14 +151,13 @@ const PageMagasin = ({navigation, route}) => {
       <Text style={styles.footer}>
         Fait Par Anthony Lamothe et Thomas Lavoie
       </Text>
-    
     {/* Affiche le bouton panier */}
       <Pressable
         style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable, styles.btnBasDroite]}
         key={id}
-        onPressIn={ () => setIsPressed(true) }     
+        onPressIn={ () => setIsPressed(true) }
         onPressOut={ () => {
-            setIsPressed(false); 
+            setIsPressed(false);
             navigation.navigate("PagePanier", {id:id, username:username, admin:admin});
           }
         }>
@@ -168,7 +167,7 @@ const PageMagasin = ({navigation, route}) => {
       </Pressable>
       <Pressable
         style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable, styles.btnBasGauche]}
-        onPressIn={ () => setIsPressed(true) }     
+        onPressIn={ () => setIsPressed(true) }
         onPress={ () => {
             navigation.navigate("Accueil", {id:id, username:username, admin:admin});
           }
@@ -191,7 +190,7 @@ const PageDétails  = ({navigation, route}) => {
       <Text>
         Bonjour : {username}
       </Text>
-      
+
       <Text style={styles.nomItemDetails}>{nom}</Text>
       <Image style={styles.imageDetails} source={require("./image1.jpg")} />
       {/* <Image style={styles.imageDetails} source={require("./"+image)} />   */}
@@ -205,7 +204,7 @@ const PageDétails  = ({navigation, route}) => {
         minValue={1}
         maxValue={10}/>
 
-      <Pressable 
+      <Pressable
         style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable , styles.btnBasDroite]}
         onPress={ () => {
           alert(qteAchat + " x ajoutés au panier");
@@ -224,6 +223,39 @@ const PageDétails  = ({navigation, route}) => {
   );
 }
 
+const Panier = ({id, nom, prix,username, image, navigation}) => {
+  const [isPressed, setIsPressed] = useState(false);
+
+  return <Pressable
+  style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable, styles.produit]}
+  key={id}
+  onPressIn={ () => setIsPressed(true) }
+  onPressOut={ () => {
+      setIsPressed(false);
+      Alert.alert(
+        "Enlevez " + {nom} + " ?",
+        "Confimez",
+        [
+          {
+            text:"Annuler"
+          },
+          {
+            Text:"Enlevez",
+            onPress:() => {db.execute("Delete from Panier where id = " + id);}
+          }
+        ]
+      );
+    }
+  }
+  >
+      <Text style={styles.centeredText}>
+        {nom}
+      </Text>
+      <Text style={styles.centeredText}>
+        {prix} $
+      </Text>
+  </Pressable>
+};
 // Affiche la page de Panier. Affiche les items se trouvant dans le panier de l'utilisateur
 // Possibilité de retirer un item en appuyant dessus (Affiche un pop-up lorsqu'on clique dessus)
 // Retire tous les items du panier lorsqu'on achète le panier.
@@ -231,6 +263,14 @@ const PageDétails  = ({navigation, route}) => {
 // À COMPLÉTER
 const PagePanier = ({navigation, route}) => {
   const [isPressed, setIsPressed] = useState(false);
+
+  const [Paniers, setPaniers] = useState();
+
+  db.execute("drop table if exists Panier ;");
+  db.execute("CREATE TABLE IF NOT EXISTS Panier (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT, username TEXT);");
+  db.execute("insert into Panier (nom, prix, image, username) values('produit1', 10.10, 'image1.png','user1')")
+  db.execute("Select id,nom,prix,username,image from Panier").then(res => setPaniers(res.rows))
+
   const {id, username, admin} = route.params;
   return (
     <View style={styles.container}>
@@ -252,9 +292,9 @@ const PageAdmin = ({navigation, route}) => {
       <Pressable
         style={isPressed?[styles.pressable, styles.pressed]:styles.pressable}
         key={id}
-        onPressIn={ () => setIsPressed(true) }     
+        onPressIn={ () => setIsPressed(true) }
         onPress={ () => {
-            setIsPressed(false); 
+            setIsPressed(false);
             navigation.navigate("PageAjouterItem", {id:id, username:username, admin:admin});
           }
         }
@@ -267,16 +307,16 @@ const PageAdmin = ({navigation, route}) => {
       <Pressable
         style={isPressed?[styles.pressable, styles.pressed]:styles.pressable}
         key={id}
-        onPressIn={ () => setIsPressed(true) }     
+        onPressIn={ () => setIsPressed(true) }
         onPressOut={ () => {
-            setIsPressed(false); 
+            setIsPressed(false);
             navigation.navigate("PageRetirerItem", {id:id, username:username, admin:admin});
           }
         }
       >
         <Text style={styles.btnText}>
           Retirer Un Item
-        </Text>        
+        </Text>
       </Pressable>
 
       <Text style={styles.footer}>
@@ -403,7 +443,7 @@ const styles = StyleSheet.create({
     left: 10,
   },
   imageDetails: {
-    width: "100%", 
+    width: "100%",
     height: "30%",
   },
   nomItemDetails: {
