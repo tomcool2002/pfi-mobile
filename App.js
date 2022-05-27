@@ -109,14 +109,14 @@ const HomeScreen = ({navigation}) => {
   const [currentConnexion, setCurrentConnexion] = useState(0);
   const vide="Aucun Usager n'existe!";
 
-  db.execute("drop table if exists Connexions ;");
+  //db.execute("drop table if exists Connexions ;");
   db.execute("CREATE TABLE IF NOT EXISTS Connexions (id INTEGER primary key autoincrement, username TEXT, admin INTEGER);");
-  db.execute(`insert into Connexions (username, admin) values('user1', 0),('user2', 0),('admin1', 1);`);
+  //db.execute(`insert into Connexions (username, admin) values('user1', 0),('user2', 0),('admin1', 1);`);
   db.execute(`Select id, username, admin from Connexions`).then(sel => setConnexions(sel.rows));
 
-  db.execute("drop table if exists Panier ;");
-  db.execute("CREATE TABLE IF NOT EXISTS Panier (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT, username TEXT, qte INTEGER);");
-  db.execute("insert into Panier (nom, prix, image, username, qte) values('produit1', 10.10, 'image1.png', 'user1', 2)");
+  //db.execute("drop table if exists Panier ;");
+  //db.execute("CREATE TABLE IF NOT EXISTS Panier (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT, username TEXT, qte INTEGER);");
+  //db.execute("insert into Panier (nom, prix, image, username, qte) values('produit1', 10.10, 'image1.png', 'user1', 2)");
 
   return (
     <View style={styles.container}>
@@ -153,13 +153,13 @@ const PageMagasin = ({navigation, route}) => {
   const [isPressed, setIsPressed] = useState(false);
 
   const [Produits, setProduits] = useState();
-  db.execute("drop table if exists Produits ;");
-  db.execute("CREATE TABLE IF NOT EXISTS Produits (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT);");
-  db.execute(`insert into Produits (nom, prix, image) values('produit1', 10.10, 'image1.jpg'),
-  ('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
-  ('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
-  ('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
-  ('produit4', 40.40, 'image4.png');`);
+  //db.execute("drop table if exists Produits ;");
+  //db.execute("CREATE TABLE IF NOT EXISTS Produits (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT);");
+  //db.execute(`insert into Produits (nom, prix, image) values('produit1', 10.10, 'image1.jpg'),
+  //('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
+  //('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
+  //('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
+  //('produit4', 40.40, 'image4.png');`);
   db.execute(`Select id, nom, prix, image from Produits`).then(sel => setProduits(sel.rows));
 
   const {id, username, admin} = route.params;
@@ -244,7 +244,7 @@ const PageDétails  = ({navigation, route}) => {
         style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable , styles.btnBasDroite]}
         onPress={ () => {
           alert(qteAchat + " x ajoutés au panier");
-          db.execute("insert into Panier (nom, prix, image, username, qte) values('"+ nom +"', "+ prix +", '"+ image +"', '"+ username +", "+ qteAchat + "')");}}>
+          db.execute("insert into Panier (nom, prix, image, username, qte) values('"+ nom +"', "+ prix +", '"+ image +"', '"+ username +"', "+ qteAchat + ")");}}>
         <Text style={styles.btnText}>Ajouter au panier</Text>
       </Pressable>
 
@@ -425,7 +425,6 @@ const PageAjouterItem = ({navigation, route}) => {
   );
 }
 
-// À COMPLÉTER
 // Suggestion : Faire un copié collé de page de détails, sauf que quand on
 // appuie sur un item, on a un message de confirmation pour le supprimer
 const PageRetirerItem = ({navigation, route}) => {
