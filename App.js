@@ -259,7 +259,7 @@ const PageDétails  = ({navigation, route}) => {
   );
 }
 
-const Panier = ({id, nom, prix,username, image,qte, navigation}) => {
+const Panier = ({id, nom, prix,username, image, qte, navigation}) => {
   const [isPressed, setIsPressed] = useState(false);
 
   return <Pressable
@@ -289,6 +289,9 @@ const Panier = ({id, nom, prix,username, image,qte, navigation}) => {
       </Text>
       <Text style={styles.centeredText}>
         {prix} $
+      </Text>
+      <Text style={styles.centeredText}>
+        x {qte}
       </Text>
   </Pressable>
 };
@@ -327,6 +330,16 @@ const PagePanier = ({navigation, route}) => {
         onPressIn={ () => setIsPressed(true) }
         onPressOut={ () => {
             setIsPressed(false);
+            db.execute("Delete from Panier where username = " + username);
+            Alert.alert(
+              "Vous avez bien acheter",
+              "",
+              [
+                {
+                  text:"Ok"
+                },
+              ]
+            );
             navigation.navigate("PageMap", {id:id, username:username, admin:admin});
           }
         }>
