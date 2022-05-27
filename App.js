@@ -8,7 +8,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TextInput,Button,Alert,useWindowDimensions } from 'react-native';
 import NumericInput from 'react-native-numeric-input';
 import MapView,{Marker,Callout,PROVIDER_GOOGLE} from 'react-native-maps';
-import entrepots from "./entrepot.json"
+import entrepots from "./entrepot.json";
 
 const Stack = createNativeStackNavigator();
 
@@ -40,7 +40,8 @@ const PageMap = ({navigation, route}) =>{
     longitude: - 73.5639533,
     latitudeDelta: 1,
     longitudeDelta: 1
-  }
+  };
+
   const [region,setRegion] = useState(initialRegion)
   const {height,width} = useWindowDimensions()
   return (
@@ -48,8 +49,10 @@ const PageMap = ({navigation, route}) =>{
       <MapView style={{width:width,height:height}} 
       provider={PROVIDER_GOOGLE}
       region = {region}>
-        {entrepots.map(b => <Marker key={b.id}
+        {entrepots.map(b => <Marker 
+         key={b.id}
              coordinate={b.coord} 
+             icon={b.id = 10 ? require('./box1.jpg') : b.id = 20 ? require('./box2.jpg') : b.id = 30 ? require ('./box3.jpg') : require ('./box4.jpg')}
              >
                <Callout>
                  <Text>{b.nom}</Text>
