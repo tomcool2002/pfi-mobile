@@ -6,10 +6,12 @@ import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TextInput,Button,Alert } from 'react-native';
+import NumericInput from 'react-native-numeric-input';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  
   return (
     <NavigationContainer>
       <Stack.Navigator>
@@ -21,7 +23,6 @@ export default function App() {
         <Stack.Screen name="PageAdmin" component={PageAdmin}/>
         <Stack.Screen name="PageAjouterItem" component={PageAjouterItem}/>
         <Stack.Screen name="PageRetirerItem" component={PageRetirerItem}/>
-        
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -34,7 +35,7 @@ const Connexion=({id, username, admin, navigation}) => {
     key={id}
     onPressIn={ () => setIsPressed(true) }     
     onPressOut={ () => {
-        setIsPressed(false); 
+        setIsPressed(false);
         admin == 0 ? navigation.navigate("Magasin", {id:id, username:username, admin:admin}) : navigation.navigate("PageAdmin", {id:id, username:username, admin:admin});
       }
     }
@@ -43,7 +44,7 @@ const Connexion=({id, username, admin, navigation}) => {
   </Pressable>
 }
 
-const Produit = ({id, nom, prix, image, navigation}) => {
+const Produit = ({id, nom, prix, image, username, navigation}) => {
   const [isPressed, setIsPressed] = useState(false);
 
   return <Pressable 
@@ -52,7 +53,7 @@ const Produit = ({id, nom, prix, image, navigation}) => {
   onPressIn={ () => setIsPressed(true) }     
   onPressOut={ () => {
       setIsPressed(false); 
-      navigation.navigate("PageDétails", {id:id, nom:nom, prix:prix, image:image});
+      navigation.navigate("PageDétails", {id:id, nom:nom, prix:prix, image:image, username:username});
     }
   }
   >
@@ -76,6 +77,10 @@ const HomeScreen = ({navigation}) => {
   db.execute("CREATE TABLE IF NOT EXISTS Connexions (id INTEGER primary key autoincrement, username TEXT, admin INTEGER);");
   db.execute(`insert into Connexions (username, admin) values('user1', 0),('user2', 0),('admin1', 1);`);
   db.execute(`Select id, username, admin from Connexions`).then(sel => setConnexions(sel.rows));
+
+  db.execute("drop table if exists Panier ;");
+  db.execute("CREATE TABLE IF NOT EXISTS Panier (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT, username TEXT, qte INTEGER);");
+  db.execute("insert into Panier (nom, prix, image, username, qte) values('produit1', 10.10, 'image1.png', 'user1', 2)");
 
   return (
     <View style={styles.container}>
@@ -114,7 +119,7 @@ const PageMagasin = ({navigation, route}) => {
   const [Produits, setProduits] = useState();
   db.execute("drop table if exists Produits ;");
   db.execute("CREATE TABLE IF NOT EXISTS Produits (id INTEGER primary key autoincrement, nom TEXT, prix REAL, image TEXT);");
-  db.execute(`insert into Produits (nom, prix, image) values('produit1', 10.10, 'image1.png'),
+  db.execute(`insert into Produits (nom, prix, image) values('produit1', 10.10, 'image1.jpg'),
   ('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
   ('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
   ('produit2', 20.20, 'image2.png'),('produit1', 30.30, 'image3.png'),
@@ -136,6 +141,7 @@ const PageMagasin = ({navigation, route}) => {
             nom={p.nom}
             prix={p.prix}
             image={p.image}
+            username={username}
             navigation={navigation}
             />   
           ) : <Text>Aucun item ne figure dans la bd</Text>}
@@ -160,19 +166,60 @@ const PageMagasin = ({navigation, route}) => {
             Panier
           </Text>
       </Pressable>
+      <Pressable
+        style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable, styles.btnBasGauche]}
+        onPressIn={ () => setIsPressed(true) }     
+        onPress={ () => {
+            navigation.navigate("Accueil", {id:id, username:username, admin:admin});
+          }
+        }>
+          <Text style={styles.btnText}>
+            déconnexion
+          </Text>
+      </Pressable>
     </View>
   );
 }
 
 const PageDétails  = ({navigation, route}) => {
   const [isPressed, setIsPressed] = useState(false);
-  const {id, nom, prix, image} = route.params;
+  const [qteAchat, setQteAchat] = useState(1);
+  const {id, nom, prix, image, username} = route.params;
+  let path = "./" + image;
   return (
-    <View>
+    <View style={styles.conteneurDetails}>
       <Text>
-        This works, {id} : {prix} : {image}
+        Bonjour : {username}
       </Text>
-      <></>
+      
+      <Text style={styles.nomItemDetails}>{nom}</Text>
+      <Image style={styles.imageDetails} source={require("./image1.jpg")} />
+      {/* <Image style={styles.imageDetails} source={require("./"+image)} />   */}
+      <Text style={styles.prixItemDetails}>
+        Prix de l'item # {id} : {prix}$
+      </Text>
+
+      <NumericInput
+        onChange={(value) => setQteAchat(value)}
+        type='up-down'
+        minValue={1}
+        maxValue={10}/>
+
+      <Pressable 
+        style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable , styles.btnBasDroite]}
+        onPress={ () => {
+          alert(qteAchat + " x ajoutés au panier");
+          db.execute("insert into Panier (nom, prix, image, username, qte) values('"+ nom +"', "+ prix +", '"+ image +"', '"+ username +", "+ qteAchat + "')");}}>
+        <Text style={styles.btnText}>Ajouter au panier</Text>
+      </Pressable>
+
+      <Pressable
+        style={[isPressed?[styles.pressable, styles.pressed]:styles.pressable , styles.btnBasGauche]}
+        onPress={ () => navigation.goBack()}>
+        <Text style={styles.btnText}>
+          retour
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -180,12 +227,14 @@ const PageDétails  = ({navigation, route}) => {
 // Affiche la page de Panier. Affiche les items se trouvant dans le panier de l'utilisateur
 // Possibilité de retirer un item en appuyant dessus (Affiche un pop-up lorsqu'on clique dessus)
 // Retire tous les items du panier lorsqu'on achète le panier.
+
+// À COMPLÉTER
 const PagePanier = ({navigation, route}) => {
   const [isPressed, setIsPressed] = useState(false);
   const {id, username, admin} = route.params;
   return (
     <View style={styles.container}>
-      <Text style={btnBasDroite}>
+      <Text>
         Bonjour : {username}
       </Text>
     </View>
@@ -295,6 +344,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  conteneurDetails: {
+    height: "100%",
+  },
   pressable: {
     backgroundColor: "#6699ff",
     padding : 10,
@@ -310,9 +362,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   scrollDownList :{
-    paddingHorizontal: 50,
+    paddingHorizontal: 60,
   },
   produit: {
+    borderColor: "black",
+    borderWidth: 1,
     paddingVertical: 30,
     paddingHorizontal: 75,
   },
@@ -333,9 +387,31 @@ const styles = StyleSheet.create({
     color: "white",
   },
   btnBasDroite :{
+    borderColor: "black",
+    borderWidth: 1,
     position: "absolute",
     padding: 20,
     bottom: 30,
     right: 10,
+  },
+  btnBasGauche :  {
+    borderColor: "black",
+    borderWidth: 1,
+    position: "absolute",
+    padding: 20,
+    bottom: 30,
+    left: 10,
+  },
+  imageDetails: {
+    width: "100%", 
+    height: "30%",
+  },
+  nomItemDetails: {
+    textAlign: "center",
+    marginVertical: 60,
+  },
+  prixItemDetails: {
+    textAlign: "center",
+    marginVertical: 60,
   },
 });
